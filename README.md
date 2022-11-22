@@ -44,16 +44,27 @@ but can be used directly in python:
 ```python
 import cjvalpy
 import json
+import urllib.request
 
-f = open("/home/elvis/mydata/myfile.city.json")
-fj = f.read()
-val = cjvalpy.CJValidator([fj])
-re = val.validate()
-if re == True:
-    print("✅")
-else: 
-    print("oh no invalid 😢")
-    print(val.get_report())
+f = open("~/data/noise.city.json")
+fj = json.loads(f.read())
+js = []
+js.append(json.dumps(fj))
+print("Downloading the Extension JSON schema file(s):")
+if "extensions" in fj:
+    for ext in fj["extensions"]:
+        theurl = fj["extensions"][ext]["url"]
+        try:
+            with urllib.request.urlopen(fj["extensions"][ext]["url"]) as f:
+                sf = f.read().decode('utf-8')
+                js.append(sf)
+        except:
+            s = "'%s' cannot be downloaded\nAbort" % fj["extensions"][ext]["url"]
+            raise Exception(s)
+val = cjvalpy.CJValidator(js)
+val.validate()
+re = val.get_report()
+print(val.get_report())
 ```
 
 
