@@ -7,24 +7,32 @@ extern crate cjval;
 
 #[pymodule]
 fn cjvalpy(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_class::<Validator>()?;
+    m.add_class::<CJValidator>()?;
     Ok(())
 }
 
 #[pyclass(unsendable)]
-pub struct Validator {
+pub struct CJValidator {
     val: cjval::CJValidator,
     valsumm: IndexMap<String, cjval::ValSummary>,
 }
 
 #[pymethods]
-impl Validator {
+impl CJValidator {
     #[new]
-    fn new(j: Vec<String>) -> PyResult<Self> {
-        let re = cjval::CJValidator::from_str(&j[0]);
+    fn new(js: Vec<String>) -> PyResult<Self> {
+        let mut v: cjval::CJValidator;
+        if js.is_empty() {
+            v = cjval::CJValidator::from_str(&"{}".to_string());
+        } else {
+            v = cjval::CJValidator::from_str(&js[0]);
+        }
+        for i in 1..js.len() {
+            let _re = v.add_one_extension_from_str(&js[i]);
+        }
         let tmp: IndexMap<String, cjval::ValSummary> = IndexMap::new();
-        Ok(Validator {
-            val: re,
+        Ok(CJValidator {
+            val: v,
             valsumm: tmp,
         })
     }
@@ -79,12 +87,4 @@ impl Validator {
         }
         Ok(true)
     }
-
-    // fn __str__(&self) -> PyResult<String> {
-    //     Ok(format!("{:?}", self.valsumm))
-    // }
-
-    // fn __repr__(&self) -> PyResult<String> {
-    //     Ok(format!("{:?}", self.valsumm))
-    // }
 }
