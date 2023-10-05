@@ -85,6 +85,12 @@ impl CJValidator {
         if self.valsumm["semantics_arrays"].has_errors() {
             return Ok(false);
         }
+        if self.valsumm["materials"].has_errors() {
+            return Ok(false);
+        }
+        if self.valsumm["textures"].has_errors() {
+            return Ok(false);
+        }
         Ok(true)
     }
 }
