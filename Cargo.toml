@@ -10,12 +10,12 @@ readme = "README.md"
 edition = "2021"
 
 [dependencies]
-cjval = "0.6.0"
+cjval = "0.8.1"
 # cjval = { path = "../cjval" }
 indexmap = "1.9.1"
 
 [dependencies.pyo3]
-version = "~0.17.0"
+version = "0.19.2"
 features = ["extension-module"]
 
 [lib]

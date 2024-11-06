@@ -20,16 +20,8 @@ pub struct CJValidator {
 #[pymethods]
 impl CJValidator {
     #[new]
-    fn new(js: Vec<String>) -> PyResult<Self> {
-        let mut v: cjval::CJValidator;
-        if js.is_empty() {
-            v = cjval::CJValidator::from_str(&"{}".to_string());
-        } else {
-            v = cjval::CJValidator::from_str(&js[0]);
-        }
-        for i in 1..js.len() {
-            let _re = v.add_one_extension_from_str(&js[i]);
-        }
+    fn new(js: String) -> PyResult<Self> {
+        let v = cjval::CJValidator::from_str(&js);
         let tmp: IndexMap<String, cjval::ValSummary> = IndexMap::new();
         Ok(CJValidator {
             val: v,
@@ -37,8 +29,32 @@ impl CJValidator {
         })
     }
 
+    fn add_one_extension_from_str(&mut self, ext_schema_str: &str) {
+        let _re = self.val.add_one_extension_from_str(&ext_schema_str);
+    }
+
     fn get_report(&self) -> PyResult<String> {
         let mut s = String::new();
+        write!(&mut s, "=== {} ===\n", "CityJSON schemas").expect("Problem writing String");
+        if self.val.get_input_cityjson_version() == 0 {
+            write!(&mut s, "none\n").expect("Problem writing String");
+        } else {
+            write!(
+                &mut s,
+                "v{} (builtin)\n",
+                self.val.get_cityjson_schema_version()
+            )
+            .expect("Problem writing String");
+        }
+        write!(&mut s, "=== {} ===\n", "Extensions").expect("Problem writing String");
+        match self.val.get_extensions_urls() {
+            Some(exts) => {
+                for each in &exts {
+                    write!(&mut s, "  * {}\n", each).expect("Problem writing String");
+                }
+            }
+            None => write!(&mut s, "  * none\n").expect("Problem writing String"),
+        }
         let mut has_errors = false;
         let mut has_warnings = false;
         for (criterion, summ) in self.valsumm.iter() {
